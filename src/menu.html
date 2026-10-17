@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Menu Kafe Meng</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost">
+<link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <div class="menu" role="menu">
+    <div class="head">
+      <svg viewBox="0 0 100 100" width="26" height="26" aria-hidden="true">
+        <polygon points="22,40 26,10 46,26" fill="#f4a259"/><polygon points="78,40 74,10 54,26" fill="#f4a259"/>
+        <polygon points="29,30 31,17 40,26" fill="#ffb8c8"/><polygon points="71,30 69,17 60,26" fill="#ffb8c8"/>
+        <ellipse cx="50" cy="56" rx="34" ry="30" fill="#f4a259"/>
+        <path d="M50 28v9M40 30l2 7M60 30l-2 7" stroke="#d9822f" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="38" cy="54" rx="4.5" ry="5.5" fill="#3b2a1a"/><ellipse cx="62" cy="54" rx="4.5" ry="5.5" fill="#3b2a1a"/>
+        <polygon points="46,63 54,63 50,68" fill="#ff8fa8"/>
+        <ellipse cx="29" cy="64" rx="6" ry="4" fill="#ff9db8" opacity=".6"/><ellipse cx="71" cy="64" rx="6" ry="4" fill="#ff9db8" opacity=".6"/>
+      </svg>
+      <div><b>Kafe Meng</b><span id="ver">kucing di taskbar kamu</span></div>
+    </div>
+    <button class="item" data-a="open" role="menuitem"><span class="ico">&#9776;</span><span data-i18n="menu.open">Buka kafe</span></button>
+    <button class="item" data-a="toggle-visible" role="menuitem"><span class="ico">&#9679;</span><span id="visLabel">Sembunyikan kucing</span></button>
+    <button class="item" data-a="toggle-hud" role="menuitem"><span class="ico">&#8211;</span><span data-i18n="menu.hud">Tombol kafe (Ctrl+Alt+K)</span></button>
+    <button class="item" data-a="autostart" role="menuitemcheckbox" aria-checked="false"><span class="ico" id="autoIco"></span><span data-i18n="menu.auto">Jalan saat Windows mulai</span></button>
+    <button class="item" data-a="check-update" role="menuitem"><span class="ico">&#8635;</span><span data-i18n="menu.check">Cek pembaruan</span></button>
+    <button class="item accent" id="installItem" data-a="install-update" role="menuitem" hidden><span class="ico">&#8679;</span><span id="installLabel">Mulai ulang untuk update</span></button>
+    <div class="sep"></div>
+    <button class="item quit" data-a="quit" role="menuitem"><span class="ico">&#10005;</span><span data-i18n="menu.quit">Keluar</span></button>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>

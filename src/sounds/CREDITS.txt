@@ -1,0 +1,7 @@
+Semua suara berlisensi CC0 (domain publik), dari OpenGameArt.org:
+- kitten_mew-1_0.ogg: "Kitten Mew" oleh AntumDeluge  https://opengameart.org/content/kitten-mew
+- Meow.ogg: "Meow" oleh IgnasD  https://opengameart.org/content/meow
+- cat_softmew.wav, cat_mewfood.wav, cat_mewpurr.wav, cat_mewpurr2.wav: "cat purr meow" oleh Kerzoven  https://opengameart.org/content/cat-purr-meow
+File audio diunduh dengan download-sounds.ps1. Kalau folder ini kosong, game memakai suara sintetis.
+
+Font Nunito (fonts/Nunito.woff2) oleh The Nunito Project Authors, lisensi SIL Open Font License 1.1 (lihat fonts/Nunito-OFL.txt).

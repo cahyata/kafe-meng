@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Izin untuk jendela kucing",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

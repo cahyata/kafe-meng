@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Kafe Meng</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="roam"></div>
+
+  <section id="panel" class="hit" hidden>
+    <div id="panelGrip" data-i18n-title="grip.tip" title="Tarik ke atas atau bawah untuk mengubah tinggi"></div>
+    <div class="awning"></div>
+    <div class="panel-top">
+      <div class="sign">
+        <svg viewBox="0 0 100 100" width="38" height="38" aria-hidden="true">
+          <polygon points="22,40 26,10 46,26" fill="#f4a259"/><polygon points="78,40 74,10 54,26" fill="#f4a259"/>
+          <polygon points="29,30 31,17 40,26" fill="#ffb8c8"/><polygon points="71,30 69,17 60,26" fill="#ffb8c8"/>
+          <ellipse cx="50" cy="56" rx="34" ry="30" fill="#f4a259"/>
+          <path d="M50 28v9M40 30l2 7M60 30l-2 7" stroke="#d9822f" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="38" cy="54" rx="4.5" ry="5.5" fill="#3b2a1a"/><ellipse cx="62" cy="54" rx="4.5" ry="5.5" fill="#3b2a1a"/>
+          <polygon points="46,63 54,63 50,68" fill="#ff8fa8"/>
+          <ellipse cx="29" cy="64" rx="6" ry="4" fill="#ff9db8" opacity=".6"/><ellipse cx="71" cy="64" rx="6" ry="4" fill="#ff9db8" opacity=".6"/>
+        </svg>
+        <div><h2>Kafe Meng</h2><span data-i18n="sub">Buka setiap hari untuk para kucing</span></div>
+      </div>
+      <div class="top-btns">
+      <button class="btn icon" id="mute" type="button" aria-pressed="false" title="Matikan suara">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path class="on-only" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="off-only" d="M15 9l6 6M21 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="btn small" id="closePanel" type="button" data-i18n="close">Tutup</button>
+      </div>
+    </div>
+    <div class="chips live">
+      <span data-i18n-title="coins.tip" title="Koin yang bisa kamu belanjakan sekarang"><i data-i18n="coins">Koin</i> <b id="coins">0</b></span>
+      <span><i data-i18n="fish">Ikan</i> <b id="fish">0</b></span>
+      <span data-i18n-title="seats.tip" title="Tamu yang sedang di kafe dari jatah kursi"><i data-i18n="seats">Kursi</i> <b id="guests">0/2</b></span>
+    </div>
+    <div class="tabs">
+      <button class="tab on" type="button" data-tab="kafe" data-i18n="tab.kafe">Kafe</button>
+      <button class="tab" type="button" data-tab="ach"><i data-i18n="tab.ach">Pencapaian</i> <span id="achCount"></span></button>
+      <button class="tab" type="button" data-tab="set" data-i18n="tab.set">Pengaturan</button>
+    </div>
+    <div class="panel-body" id="tabKafe">
+      <button class="btn fishbtn" id="buyFish" type="button"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1" fill="currentColor"/></svg><span data-i18n="buyfish">Beli 5 ikan</span> <small id="fishCost"></small></button>
+      <div class="ups" id="ups"></div>
+      <h3><span data-i18n="book">Buku kucing</span> <span id="bookCount"></span></h3>
+      <div class="book" id="book"></div>
+      <div class="panel-foot">
+        <button class="btn small" id="quit" type="button" data-i18n="quit">Keluar</button>
+      </div>
+    </div>
+    <div class="panel-body" id="tabAch" hidden></div>
+    <div class="panel-body" id="tabSet" hidden>
+      <div class="set-row"><b><i data-i18n="set.sound">Suara</i><small data-i18n="set.sound.d">Volume efek kucing</small></b>
+        <div class="set-ctl"><input type="range" id="volRange" min="0" max="100" step="5" aria-label="Volume"><button class="btn small" id="muteSet" type="button">Senyap</button></div></div>
+      <div class="set-row"><b><i data-i18n="set.theme">Tema</i><small data-i18n="set.theme.d">Terang atau gelap</small></b>
+        <div class="seg" id="segTheme"><button type="button" data-v="auto" data-i18n="theme.auto">Otomatis</button><button type="button" data-v="light" data-i18n="theme.light">Terang</button><button type="button" data-v="dark" data-i18n="theme.dark">Gelap</button></div></div>
+      <div class="set-row"><b><i data-i18n="set.size">Ukuran tampilan</i><small data-i18n="set.size.d">Tombol dan panel</small></b>
+        <div class="seg" id="segSize"><button type="button" data-v="s" data-i18n="size.s">Kecil</button><button type="button" data-v="m" data-i18n="size.m">Sedang</button><button type="button" data-v="l" data-i18n="size.l">Besar</button></div></div>
+      <div class="set-row"><b><i data-i18n="set.lang">Bahasa</i><small data-i18n="set.lang.d">Bahasa tampilan</small></b>
+        <div class="seg" id="segLang"><button type="button" data-v="id">Indonesia</button><button type="button" data-v="en">English</button></div></div>
+      <div class="set-row"><b><i data-i18n="set.cats">Kucing</i><small data-i18n="set.cats.d">Klik ikon tray untuk memunculkan lagi</small></b>
+        <button class="btn small" id="actCats" type="button" data-i18n="set.cats.btn">Sembunyikan</button></div>
+      <div class="set-row"><b><i data-i18n="set.hud">Tombol kucing</i><small data-i18n="set.hud.d">Pintasan Ctrl+Alt+K</small></b>
+        <button class="btn small" id="actHud" type="button"></button></div>
+      <div class="set-row"><b><i data-i18n="set.auto">Jalan saat Windows mulai</i><small data-i18n="set.auto.d">Kafe langsung buka saat komputer nyala</small></b>
+        <button class="btn small" id="actAuto" type="button"></button></div>
+      <div class="set-row"><b><i data-i18n="set.upd">Pembaruan</i><small id="verLine"></small></b>
+        <div class="set-ctl"><button class="btn small" id="actUpd" type="button" data-i18n="upd.check">Cek</button><button class="btn small main" id="actInstall" type="button" hidden></button></div></div>
+      <div class="set-foot">
+        <button class="btn small" id="openGuide" type="button" data-i18n="set.guide">Panduan</button>
+        <button class="btn small" id="reset" type="button" data-i18n="set.reset">Mulai dari awal</button>
+      </div>
+    </div>
+  </section>
+
+  <button id="hudTab" class="hit" type="button" title="Buka kafe (Ctrl+Alt+K untuk menyembunyikan)" aria-label="Buka kafe" data-i18n-title="hud.tip" data-i18n-aria="hud.aria" hidden>
+    <svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">
+      <polygon points="20,42 24,8 48,26" fill="#f4a259" stroke="rgba(40,25,60,.25)" stroke-width="2"/>
+      <polygon points="80,42 76,8 52,26" fill="#f4a259" stroke="rgba(40,25,60,.25)" stroke-width="2"/>
+      <polygon points="28,32 30,17 41,26" fill="#ffb8c8"/><polygon points="72,32 70,17 59,26" fill="#ffb8c8"/>
+      <ellipse cx="50" cy="58" rx="36" ry="31" fill="#f4a259" stroke="rgba(40,25,60,.25)" stroke-width="2"/>
+      <path d="M50 29v9M39 31l2 7M61 31l-2 7" stroke="#d9822f" stroke-width="3" stroke-linecap="round"/>
+      <g class="logo-eyes"><ellipse cx="37" cy="56" rx="5" ry="6" fill="#3b2a1a"/><ellipse cx="63" cy="56" rx="5" ry="6" fill="#3b2a1a"/>
+      <circle cx="38.8" cy="54" r="1.8" fill="#fff"/><circle cx="64.8" cy="54" r="1.8" fill="#fff"/></g>
+      <polygon points="45.5,65 54.5,65 50,70 " fill="#ff8fa8"/>
+      <path d="M50 70q-4 5-8 2M50 70q4 5 8 2" fill="none" stroke="rgba(40,25,60,.55)" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="27" cy="66" rx="6.5" ry="4" fill="#ff9db8" opacity=".6"/><ellipse cx="73" cy="66" rx="6.5" ry="4" fill="#ff9db8" opacity=".6"/>
+      <path d="M22 62l-12-3M22 66l-12 3M78 62l12-3M78 66l12 3" stroke="rgba(255,255,255,.8)" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div id="tourRing" hidden></div>
+  <section id="guide" class="hit" hidden role="dialog" aria-labelledby="guideTitle">
+    <div class="awning"></div>
+    <div class="guide-body">
+      <b id="guideTitle"></b>
+      <p id="guideText"></p>
+      <div class="guide-foot">
+        <div class="guide-dots" id="guideDots"></div>
+        <button class="btn small" id="guideSkip" type="button" data-i18n="guide.skip">Lewati</button>
+        <button class="btn main" id="guideNext" type="button">Lanjut</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" role="status"></div>
+  <script src="i18n.js"></script>
+  <script src="tauri-bridge.js"></script>
+</body>
+</html>
