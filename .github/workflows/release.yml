@@ -1,6 +1,6 @@
-name: Rilis Kafe Meong
+name: Rilis Kafe Meng (Tauri)
 
-# Berjalan otomatis setiap kali ada tag versi, misalnya v1.0.1
+# Berjalan otomatis setiap kali ada tag versi, misalnya v2.0.0
 on:
   push:
     tags:
@@ -19,18 +19,32 @@ jobs:
         with:
           node-version: 22
 
-      - name: Pastikan tag sama dengan versi di package.json
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Pastikan tag sama dengan versi di tauri.conf.json
         shell: bash
         run: |
-          PKG="v$(node -p "require('./package.json').version")"
-          if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} tidak sama dengan versi package.json ($PKG)."
+          CONF="v$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          if [ "$CONF" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} tidak sama dengan versi tauri.conf.json ($CONF)."
             exit 1
           fi
 
       - run: npm install --no-audit --no-fund
 
-      - name: Build installer dan unggah ke GitHub Releases
-        run: npx electron-builder --win nsis --publish always
+      - name: Build installer, tanda tangani update, unggah ke GitHub Releases
+        uses: tauri-apps/tauri-action@v0
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Kafe Meng ${{ github.ref_name }}"
+          releaseBody: "Unduh file Kafe.Meng_*_x64-setup.exe lalu jalankan."
+          releaseDraft: false
+          prerelease: false

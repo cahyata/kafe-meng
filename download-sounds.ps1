@@ -1,6 +1,6 @@
-# Mengunduh suara kucing CC0 dari OpenGameArt ke renderer\sounds. Jalankan sekali dari folder proyek:
+# Mengunduh suara kucing CC0 dari OpenGameArt ke src\sounds. Jalankan sekali dari folder proyek:
 #   powershell -ExecutionPolicy Bypass -File .\download-sounds.ps1
-$dir = Join-Path $PSScriptRoot "renderer\sounds"
+$dir = Join-Path $PSScriptRoot "src\sounds"
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
 $files = @(
   "kitten_mew-1_0.ogg",   # Kitten Mew oleh AntumDeluge (CC0)
@@ -18,4 +18,4 @@ foreach ($f in $files) {
     Write-Host "GAGAL  $f  ($($_.Exception.Message))"
   }
 }
-Write-Host "Selesai. Jalankan ulang aplikasi (npm start) untuk mendengar suara baru."
+Write-Host "Selesai. Jalankan ulang aplikasi (npm run dev) untuk mendengar suara baru."

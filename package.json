@@ -1,62 +1,14 @@
 {
-  "name": "kafe-meong-taskbar",
-  "version": "1.0.2",
-  "description": "Kafe Meng",
-  "main": "main.js",
-  "author": "Geri",
-  "license": "UNLICENSED",
+  "name": "kafe-meng",
+  "version": "2.0.0",
   "private": true,
+  "description": "Kafe Meng",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --win nsis portable",
-    "build:folder": "electron-builder --win --dir",
-    "release": "electron-builder --win nsis --publish always"
-  },
-  "dependencies": {
-    "electron-updater": "^6.3.9"
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
   },
   "devDependencies": {
-    "electron": "^33.2.0",
-    "electron-builder": "^25.1.8"
-  },
-  "build": {
-    "appId": "com.geri.kafemeong",
-    "productName": "Kafe Meng",
-    "directories": {
-      "output": "dist",
-      "buildResources": "build"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "menu-preload.js",
-      "renderer/**",
-      "assets/**"
-    ],
-    "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "build/icon.png"
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "deleteAppDataOnUninstall": false,
-      "artifactName": "Kafe-Meng-Setup-${version}.exe"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "cahyata",
-        "repo": "kafe-meng",
-        "releaseType": "release"
-      }
-    ],
-    "portable": {
-      "artifactName": "Kafe-Meng-Portable-${version}.exe"
-    },
-    "copyright": "Kafe Meng"
+    "@tauri-apps/cli": "^2"
   }
 }
