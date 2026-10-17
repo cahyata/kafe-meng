@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   var $ = function (s) { return document.querySelector(s); };
-  var api = window.api || { setIgnore: function () {}, quit: function () {}, onOpenPanel: function () {}, onToggleHud: function () {}, onNotice: function () {} };
+  var api = window.api || { setIgnore: function () {}, quit: function () {}, onOpenPanel: function () {}, onToggleHud: function () {}, onNotice: function () {}, onBridge: function () {}, bridgeAction: function () {} };
   var hasFile = typeof api.loadSave === "function";
   var KEY = "kafe-meong-taskbar-v1";
   var CAT = 72, HUD_W = 380;
@@ -550,6 +550,12 @@
   $("#hudTab").addEventListener("click", function () { setHud(false); });
   api.onToggleHud(function () { setHud(!S.hudHidden); });
   api.onNotice(function (msg) { notify(msg); });
+
+  // ajakan pindah ke versi yang lebih ringan
+  api.onBridge(function () { $("#bridge").hidden = false; });
+  function closeBridge(name) { $("#bridge").hidden = true; api.bridgeAction(name); probe(); }
+  $("#bridgeOpen").addEventListener("click", function () { closeBridge("open"); });
+  $("#bridgeLater").addEventListener("click", function () { closeBridge("later"); });
 
   $("#ups").addEventListener("click", function (e) {
     var b = e.target.closest("[data-up]");

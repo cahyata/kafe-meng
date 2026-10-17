@@ -5,6 +5,9 @@
     var a = document.querySelector('[data-a="autostart"]');
     a.setAttribute("aria-checked", st.autostart ? "true" : "false");
     document.getElementById("ver").textContent = st.version ? "kucing di taskbar kamu \u00b7 v" + st.version : "kucing di taskbar kamu";
+    var light = document.getElementById("lightItem");
+    light.hidden = !st.lightVersion;
+    if (st.lightVersion) document.getElementById("lightLabel").textContent = "Unduh versi lebih ringan (v" + st.lightVersion + ")";
     var ins = document.getElementById("installItem");
     ins.hidden = !st.updateReady;
     if (st.updateReady) document.getElementById("installLabel").textContent = "Mulai ulang untuk v" + st.updateReady;

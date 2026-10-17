@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut } = require("electron");
+const { app, BrowserWindow, Tray, Menu, ipcMain, screen, nativeImage, globalShortcut, net, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
@@ -75,7 +75,7 @@ function createWindow() {
   setInterval(() => { if (win && win.isVisible()) win.moveTop(); }, 5000);
 }
 
-const MENU_W = 268, MENU_H = 360;
+const MENU_W = 268, MENU_H = 400;
 let menuWin = null;
 
 function createMenuWindow() {
@@ -104,8 +104,40 @@ function createMenuWindow() {
 
 let updateReady = null; // nomor versi yang sudah diunduh dan siap dipasang
 
+// Jembatan ke versi Tauri yang lebih ringan: kalau rilis terbaru di GitHub ternyata versi Tauri
+// (ditandai adanya latest.json), pemain diajak mengunduhnya. Pilihan "Nanti" menunda 3 hari.
+const RELEASES_URL = "https://github.com/cahyata/kafe-meng/releases/latest";
+const LIGHT_MANIFEST = RELEASES_URL + "/download/latest.json";
+const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+let lightVersion = null;
+const bridgeFile = () => path.join(app.getPath("userData"), "bridge.json");
+function snoozedUntil() {
+  try { return +JSON.parse(fs.readFileSync(bridgeFile(), "utf8")).snoozeUntil || 0; } catch (err) { return 0; }
+}
+function snooze() {
+  try {
+    fs.mkdirSync(app.getPath("userData"), { recursive: true });
+    fs.writeFileSync(bridgeFile(), JSON.stringify({ snoozeUntil: Date.now() + SNOOZE_MS }));
+  } catch (err) { /* kalau gagal, kartu muncul lagi di pengecekan berikutnya */ }
+}
+async function checkLight() {
+  try {
+    const res = await net.fetch(LIGHT_MANIFEST, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return;
+    const info = await res.json();
+    if (!info || typeof info.version !== "string" || !/^[0-9][0-9A-Za-z.\-+]*$/.test(info.version)) return;
+    lightVersion = info.version;
+    if (Date.now() >= snoozedUntil() && win && !win.isDestroyed()) win.webContents.send("bridge", lightVersion);
+  } catch (err) { /* tidak ada koneksi atau belum ada rilis Tauri: abaikan */ }
+}
+function setupBridge() {
+  setTimeout(checkLight, 25000);
+  setInterval(checkLight, 6 * 60 * 60 * 1000);
+}
+
 function menuState() {
   return {
+    lightVersion,
     visible: !!(win && win.isVisible()),
     autostart: app.getLoginItemSettings().openAtLogin,
     version: app.getVersion(),
@@ -173,6 +205,7 @@ ipcMain.on("menu-action", (_e, name) => {
     else { manualCheck = true; autoUpdater.checkForUpdates().catch(() => { notice("Gagal memeriksa pembaruan. Coba lagi nanti."); manualCheck = false; }); }
   }
   else if (name === "install-update") { if (updateReady) autoUpdater.quitAndInstall(); }
+  else if (name === "get-light") { shell.openExternal(RELEASES_URL); snooze(); }
   else if (name === "toggle-hud") { if (win) win.webContents.send("toggle-hud"); }
   else if (name === "autostart") app.setLoginItemSettings({ openAtLogin: !app.getLoginItemSettings().openAtLogin });
   else if (name === "quit") app.quit();
@@ -184,6 +217,10 @@ ipcMain.on("set-ignore", (_e, ignore) => {
   else win.setIgnoreMouseEvents(false);
 });
 ipcMain.on("quit", () => app.quit());
+ipcMain.on("bridge-action", (_e, name) => {
+  if (name === "open") shell.openExternal(RELEASES_URL);
+  snooze(); // "Nanti" dan "Unduh" sama-sama menunda pengingat supaya tidak mengganggu
+});
 
 // Progres disimpan sebagai JSON di folder data pengguna (Windows: %APPDATA%\Kafe Meng\save.json).
 const saveFile = () => path.join(app.getPath("userData"), "save.json");
@@ -204,6 +241,7 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   setupUpdater();
+  setupBridge();
   // Pintasan untuk menyembunyikan atau menampilkan bar menu kapan saja.
   globalShortcut.register("CommandOrControl+Alt+K", () => { if (win) win.webContents.send("toggle-hud"); });
 });

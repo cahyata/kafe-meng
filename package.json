@@ -1,6 +1,6 @@
 {
   "name": "kafe-meong-taskbar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Kafe Meng",
   "main": "main.js",
   "author": "Geri",
@@ -50,7 +50,7 @@
       {
         "provider": "github",
         "owner": "cahyata",
-        "repo": "kafe-meong",
+        "repo": "kafe-meng",
         "releaseType": "release"
       }
     ],

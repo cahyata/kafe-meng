@@ -170,6 +170,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .ach .bar i { display: block; height: 100%; background: var(--accent); }
 .ach .rw { font-size: 11px; font-weight: 800; color: var(--accent); white-space: nowrap; }
 
+/* kartu ajakan pindah ke versi Tauri */
+#bridge {
+  position: absolute; right: 8px; bottom: 100px; width: 330px; overflow: hidden;
+  background: var(--surface); border: 2px solid var(--line); border-radius: 18px;
+  box-shadow: 0 8px 26px rgba(40, 25, 60, .32);
+}
+#bridge[hidden] { display: none; }
+#panel:not([hidden]) ~ #bridge { right: 380px; }
+.bridge-body { padding: 14px 16px 14px; }
+.bridge-body b { font-size: 14px; }
+.bridge-body p { margin: 6px 0 12px; color: var(--muted); line-height: 1.4; }
+.bridge-btns { display: flex; gap: 8px; justify-content: flex-end; }
 #toast {
   position: absolute; right: 8px; bottom: 60px; background: var(--ink); color: var(--surface); padding: 7px 14px; border-radius: 999px;
   font-weight: 700; max-width: 360px; opacity: 0; transition: opacity .3s; pointer-events: none;
