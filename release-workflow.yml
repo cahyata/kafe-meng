@@ -1,0 +1,36 @@
+name: Rilis Kafe Meng
+
+# Berjalan otomatis setiap kali ada tag versi, misalnya v1.0.1
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Pastikan tag sama dengan versi di package.json
+        shell: bash
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} tidak sama dengan versi package.json ($PKG)."
+            exit 1
+          fi
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Build installer dan unggah ke GitHub Releases
+        run: npx electron-builder --win nsis --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

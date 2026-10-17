@@ -55,7 +55,7 @@ Biayanya nol: repo publik, GitHub Actions, dan Releases gratis di GitHub.
 
    Angka di tag harus sama dengan `version` di `package.json`. Kalau beda, build berhenti dengan pesan jelas.
 3. Buka tab **Actions** di repo untuk melihat build berjalan (sekitar 3 sampai 6 menit).
-4. Setelah selesai, tab **Releases** berisi `Kafe-Meong-Setup-1.0.1.exe`. Kirim link halaman Releases itu ke siapa pun yang mau main.
+4. Setelah selesai, tab **Releases** berisi `Kafe-Meng-Setup-1.0.1.exe`. Kirim link halaman Releases itu ke siapa pun yang mau main.
 
 Pemain yang sudah memasang versi lama akan mendapat notifikasi "Versi baru ditemukan" di dalam game, versi baru diunduh sendiri, lalu muncul pilihan **Mulai ulang untuk vX** di menu klik kanan ikon tray. Kalau mereka tidak memilihnya, update terpasang otomatis saat game ditutup. Menu tray juga punya **Cek pembaruan** untuk memeriksa manual. Pengecekan otomatis berjalan 15 detik setelah game dibuka dan tiap 4 jam.
 
@@ -75,7 +75,7 @@ Hal-hal yang perlu diketahui:
 ## Catatan penting
 
 - **Repo harus publik.** Update otomatis tanpa token hanya jalan dari repo publik. Artinya kode game bisa dilihat siapa saja. Kalau mau mengatur izin pemakaian kode, tambahkan file LICENSE di repo (untuk saat ini `package.json` memakai `UNLICENSED`, artinya semua hak dipegang pemilik).
-- **Update otomatis hanya untuk installer** (`Kafe-Meong-Setup-...exe`). Versi portable tidak bisa memperbarui diri, jadi workflow ini tidak membuatnya. Saat main dari `npm start`, fitur update sengaja nonaktif.
+- **Update otomatis hanya untuk installer** (`Kafe-Meng-Setup-...exe`). Versi portable tidak bisa memperbarui diri, jadi workflow ini tidak membuatnya. Saat main dari `npm start`, fitur update sengaja nonaktif.
 - **Jangan menaruh token atau password** di repo publik. Workflow memakai `GITHUB_TOKEN` bawaan GitHub, jadi kamu tidak perlu membuat token apa pun.
 - Folder `renderer\sounds` (suara kucing) ikut terunggah ke repo kalau sudah kamu unduh. Semua suaranya berlisensi CC0, jadi aman dibagikan.
-- Progres pemain tersimpan di folder data pengguna masing-masing (`%APPDATA%\Kafe Meong\save.json`) dan tidak hilang saat update.
+- Progres pemain tersimpan di folder data pengguna masing-masing (`%APPDATA%\Kafe Meng\save.json`) dan tidak hilang saat update. Save dari nama lama ("Kafe Meong") disalin otomatis ke folder ini saat pertama dijalankan. Save dari versi dengan nama lama disalin otomatis ke folder ini saat pertama dijalankan.

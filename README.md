@@ -1,4 +1,4 @@
-# Kafe Meong untuk Windows (versi taskbar)
+# Kafe Meng untuk Windows (versi taskbar)
 
 Kucing-kucing berjalan di atas taskbar Windows. Belai atau beri ikan untuk dapat koin, lalu upgrade kafe lewat tombol **Kafe** di pojok kanan bawah. Jendela transparan, selalu di atas, dan klik tembus ke desktop kecuali pada kucing dan tombol.
 
@@ -13,8 +13,8 @@ Kucing-kucing berjalan di atas taskbar Windows. Belai atau beri ikan untuk dapat
    ```
 
 3. Hasilnya ada di folder `dist\`:
-   - `Kafe Meong Setup 1.0.0.exe`: installer.
-   - `Kafe Meong 1.0.0.exe`: versi portable, tanpa instalasi.
+   - `Kafe Meng Setup 1.0.0.exe`: installer.
+   - `Kafe Meng 1.0.0.exe`: versi portable, tanpa instalasi.
 
 Untuk mencoba tanpa build: `npm install` lalu `npm start`.
 

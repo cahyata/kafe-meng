@@ -1,7 +1,7 @@
 {
   "name": "kafe-meong-taskbar",
-  "version": "1.0.0",
-  "description": "Kafe Meong versi taskbar: kucing berjalan di atas taskbar Windows",
+  "version": "1.0.1",
+  "description": "Kafe Meng",
   "main": "main.js",
   "author": "Geri",
   "license": "UNLICENSED",
@@ -21,7 +21,7 @@
   },
   "build": {
     "appId": "com.geri.kafemeong",
-    "productName": "Kafe Meong",
+    "productName": "Kafe Meng",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -44,7 +44,7 @@
       "oneClick": true,
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
-      "artifactName": "Kafe-Meong-Setup-${version}.exe"
+      "artifactName": "Kafe-Meng-Setup-${version}.exe"
     },
     "publish": [
       {
@@ -55,7 +55,8 @@
       }
     ],
     "portable": {
-      "artifactName": "Kafe-Meong-Portable-${version}.exe"
-    }
+      "artifactName": "Kafe-Meng-Portable-${version}.exe"
+    },
+    "copyright": "Kafe Meng"
   }
 }

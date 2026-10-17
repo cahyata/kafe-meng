@@ -4,6 +4,27 @@ const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 
 const HEIGHT = 430;
+
+// Folder data dipatok ke nama tetap, lepas dari nama produk, lalu save lama disalin sekali kalau ada
+// (folder "Kafe Meong" atau nama bawaan lama), supaya progres tidak hilang saat nama berubah.
+(function pinUserData() {
+  const base = app.getPath("appData");
+  const target = path.join(base, "Kafe Meng");
+  const legacy = [app.getPath("userData"), path.join(base, "Kafe Meong"), path.join(base, "kafe-meong-taskbar")];
+  try {
+    if (!fs.existsSync(path.join(target, "save.json"))) {
+      for (const dir of legacy) {
+        if (dir !== target && fs.existsSync(path.join(dir, "save.json"))) {
+          fs.mkdirSync(target, { recursive: true });
+          fs.copyFileSync(path.join(dir, "save.json"), path.join(target, "save.json"));
+          break;
+        }
+      }
+    }
+  } catch (err) { /* kalau gagal, game mulai dari save kosong tapi file lama tetap utuh */ }
+  app.setPath("userData", target);
+})();
+
 let win = null;
 let tray = null;
 
@@ -136,7 +157,7 @@ function openPanel() {
 function createTray() {
   const icon = nativeImage.createFromPath(path.join(__dirname, "assets", "icon.png")).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  tray.setToolTip("Kafe Meong");
+  tray.setToolTip("Kafe Meng");
   createMenuWindow();
   tray.on("click", openPanel);
   tray.on("right-click", showMenu);
@@ -164,7 +185,7 @@ ipcMain.on("set-ignore", (_e, ignore) => {
 });
 ipcMain.on("quit", () => app.quit());
 
-// Progres disimpan sebagai JSON di folder data pengguna (Windows: %APPDATA%\Kafe Meong\save.json).
+// Progres disimpan sebagai JSON di folder data pengguna (Windows: %APPDATA%\Kafe Meng\save.json).
 const saveFile = () => path.join(app.getPath("userData"), "save.json");
 ipcMain.on("load-save", (e) => {
   try { e.returnValue = fs.readFileSync(saveFile(), "utf8"); } catch (err) { e.returnValue = ""; }
