@@ -3,3 +3,8 @@ src-tauri/target/
 src-tauri/gen/
 *.log
 *.key
+# panduan dan skrip pribadi, tidak perlu ada di repo publik
+PANDUAN-TAURI.md
+RILIS-LOKAL.md
+buat-rilis-lokal.ps1
+rilis-v*/
