@@ -1,0 +1,61 @@
+{
+  "name": "kafe-meong-taskbar",
+  "version": "1.0.0",
+  "description": "Kafe Meong versi taskbar: kucing berjalan di atas taskbar Windows",
+  "main": "main.js",
+  "author": "Geri",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis portable",
+    "build:folder": "electron-builder --win --dir",
+    "release": "electron-builder --win nsis --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.geri.kafemeong",
+    "productName": "Kafe Meong",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "menu-preload.js",
+      "renderer/**",
+      "assets/**"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Kafe-Meong-Setup-${version}.exe"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "cahyata",
+        "repo": "kafe-meong",
+        "releaseType": "release"
+      }
+    ],
+    "portable": {
+      "artifactName": "Kafe-Meong-Portable-${version}.exe"
+    }
+  }
+}
