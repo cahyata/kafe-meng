@@ -234,3 +234,5 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .cat.dragging .bubble, .cat.falling .bubble { display: none !important; }
 .cat.falling { z-index: 5; }
+.ach.secret { opacity: .7; border-style: dashed; }
+.ach.secret .badge { background: var(--stage); color: var(--muted); }

@@ -15,7 +15,16 @@
     { id: "tuxedo", nama: "Tuxedo",       w: 25, mult: 1.5, body: "#463f55", belly: "#ffffff", pat: "tuxedo", stripe: "#463f55", eye: "#7bd18a" },
     { id: "siam",   nama: "Siam Krim",    w: 15, mult: 1.8, body: "#f1dfc6", belly: "#fbf1e2", pat: "siam",   stripe: "#7a5a47", eye: "#4a83c9" },
     { id: "calico", nama: "Tiga Warna",   w: 12, mult: 2,   body: "#fbf6ee", belly: "#ffffff", pat: "calico", stripe: "#f08a3c", eye: "#3b2a1a" },
-    { id: "emas",   nama: "Kucing Emas",  w: 3,  mult: 5,   body: "#f2c94c", belly: "#fff0b8", pat: "stripe", stripe: "#d9a526", eye: "#5b3a12" }
+    { id: "emas",   nama: "Kucing Emas",  w: 3,  mult: 5,   body: "#f2c94c", belly: "#fff0b8", pat: "stripe", stripe: "#d9a526", eye: "#5b3a12" },
+    { id: "kelabu",  nama: "Biru Kelabu",   w: 30, mult: 1.3, body: "#8e9db4", belly: "#c9d3e2", pat: "solid",  stripe: "#8e9db4", eye: "#6bd18a" },
+    { id: "cokelat", nama: "Cokelat Susu",  w: 35, mult: 1.3, body: "#9b6b4a", belly: "#d9b79a", pat: "solid",  stripe: "#9b6b4a", eye: "#f2c94c" },
+    { id: "krem",    nama: "Krem Vanila",   w: 35, mult: 1.3, body: "#f1deb8", belly: "#fff3d9", pat: "solid",  stripe: "#f1deb8", eye: "#e0a43a" },
+    { id: "belang",  nama: "Macan Belang",  w: 20, mult: 1.6, body: "#c98a4b", belly: "#f2d3a8", pat: "stripe", stripe: "#4a2e18", eye: "#6bd18a" },
+    { id: "smoking", nama: "Tuxedo Abu",    w: 18, mult: 1.7, body: "#8a8fa0", belly: "#ffffff", pat: "tuxedo", stripe: "#8a8fa0", eye: "#f2c94c" },
+    { id: "gundul",  nama: "Si Gundul",     w: 10, mult: 2.2, body: "#f0c4b8", belly: "#f9dcd2", pat: "solid",  stripe: "#f0c4b8", eye: "#4a83c9" },
+    { id: "bintang", nama: "Kucing Bintang", w: 6, mult: 3.5, body: "#2b2f55", belly: "#3a3f70", pat: "solid",  stripe: "#2b2f55", eye: "#9ad0ff", stars: true },
+    { id: "pelangi", nama: "Kucing Pelangi", w: 2, mult: 8,   body: "#ffd93d", belly: "#ffffff", pat: "rainbow", stripe: "#ffd93d", eye: "#3b2a1a" },
+    { id: "hantu",   nama: "Kucing Hantu",  w: 0,  mult: 6,   body: "#e8ecf8", belly: "#ffffff", pat: "solid",  stripe: "#e8ecf8", eye: "#ff6b6b", ghost: true }
   ];
   function bname(b) { return t("breed." + b.id); }
   var NAMES = ["Mochi", "Bakpao", "Cilok", "Tahu", "Pepeng", "Nasi", "Boba", "Kopi", "Susu", "Onde", "Cimol", "Pudding", "Kerupuk", "Bubur", "Cendol", "Roti", "Komo", "Kiko", "Mimi", "Gembul", "Telur", "Donat", "Siomay", "Klepon"];
@@ -30,7 +39,7 @@
   };
 
   function fresh() {
-    return { coins: 0, fish: 6, up: { table: 0, pet: 0, feed: 0, kitchen: 0, decor: 0, helper: 0 }, seen: {}, served: 0, mute: false, total: 0, pets: 0, feeds: 0, ach: {}, hudHidden: false, helperOff: false, intro: false, vol: 1, theme: "auto", size: "m", lang: "", btn: { r: 8, b: 6 }, panelH: 470, cats: [], spawnT: 0.5, last: Date.now() };
+    return { coins: 0, fish: 6, up: { table: 0, pet: 0, feed: 0, kitchen: 0, decor: 0, helper: 0 }, seen: {}, served: 0, mute: false, total: 0, pets: 0, feeds: 0, ach: {}, hudHidden: false, helperOff: false, intro: false, vol: 1, theme: "auto", size: "m", lang: "", drops: 0, best: 0, days: 0, dayStamp: "", eggs: {}, btn: { r: 8, b: 6 }, panelH: 470, cats: [], spawnT: 0.5, last: Date.now() };
   }
   var S = fresh();
   var cats = []; // kucing yang sedang tampil, lengkap dengan elemen DOM
@@ -45,6 +54,7 @@
       f.total = +d.total || f.coins; f.pets = +d.pets || 0; f.feeds = +d.feeds || 0; f.ach = d.ach || {}; f.hudHidden = !!d.hudHidden; f.helperOff = !!d.helperOff;
       f.vol = d.vol === undefined ? 1 : Math.max(0, Math.min(1, +d.vol || 0));
       f.theme = ["auto", "light", "dark"].indexOf(d.theme) >= 0 ? d.theme : "auto";
+      f.drops = +d.drops || 0; f.best = +d.best || 0; f.days = +d.days || 0; f.dayStamp = typeof d.dayStamp === "string" ? d.dayStamp : ""; f.eggs = d.eggs && typeof d.eggs === "object" ? d.eggs : {};
       f.lang = d.lang === "en" || d.lang === "id" ? d.lang : "";
       f.size = ["s", "m", "l"].indexOf(d.size) >= 0 ? d.size : "m";
       if (d.btn && isFinite(+d.btn.r) && isFinite(+d.btn.b)) f.btn = { r: +d.btn.r, b: +d.btn.b };
@@ -69,10 +79,14 @@
 
   /* ---------- rumus ---------- */
   function maxCats() { return 2 + S.up.table; }
-  function petCoins() { return 1 + S.up.pet; }
+  // 8 Agustus (Hari Kucing Sedunia): koin dobel seharian.
+  function isCatDay() { var d = new Date(); return d.getMonth() === 7 && d.getDate() === 8; }
+  function isHalloween() { var d = new Date(); return d.getMonth() === 9 && d.getDate() === 31; }
+  function dayBonus() { return isCatDay() ? 2 : 1; }
+  function petCoins() { return (1 + S.up.pet) * dayBonus(); }
   function petLove() { return 12 + S.up.pet; }
-  function feedCoins() { return 5 + 4 * S.up.feed; }
-  function tipBase() { return 8 + 4 * S.up.feed; }
+  function feedCoins() { return (5 + 4 * S.up.feed) * dayBonus(); }
+  function tipBase() { return (8 + 4 * S.up.feed) * dayBonus(); }
   function fishMax() { return 10 + 5 * S.up.kitchen; }
   function fishRegen() { return 0.12 + 0.08 * S.up.kitchen; }
   function arriveEvery() { return Math.max(2.5, 9 - 1.2 * S.up.decor); }
@@ -93,10 +107,17 @@
   function earn(n) { S.coins += n; S.total += n; }
 
   /* ---------- gambar kucing ---------- */
+  var gradN = 0;
   function catSVG(b) {
-    var s = "", line = 'stroke="rgba(40,25,60,.22)" stroke-width="1.5"';
+    var s = "", line = 'stroke="rgba(40,25,60,.22)" stroke-width="1.5"', defs = "";
+    if (b.pat === "rainbow") {
+      // id unik per gambar: gradien di dalam SVG yang tersembunyi (panel tertutup) tidak terpakai oleh SVG lain
+      var gid = "rb" + (++gradN);
+      defs = '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".25" stop-color="#ffd93d"/><stop offset=".5" stop-color="#6bcf7f"/><stop offset=".75" stop-color="#4d9de0"/><stop offset="1" stop-color="#b66be0"/></linearGradient></defs>';
+      b = Object.assign({}, b, { body: "url(#" + gid + ")", pat: "solid" });
+    }
     var paw = b.pat === "tuxedo" ? "#fff" : b.body;
-    s += '<svg viewBox="0 0 100 100" aria-hidden="true">';
+    s += '<svg viewBox="0 0 100 100" aria-hidden="true"' + (b.ghost ? ' style="opacity:.62"' : "") + '>' + defs;
     s += '<g class="cat-tail"><path d="M74 88 C96 86 98 58 86 54" fill="none" stroke="' + b.body + '" stroke-width="9" stroke-linecap="round"/>';
     if (b.pat === "stripe") s += '<path d="M90 80 l5 -2 M92 70 l5 -1 M89 60 l5 1" stroke="' + b.stripe + '" stroke-width="2.4" stroke-linecap="round"/>';
     if (b.pat === "siam") s += '<path d="M86 54 C90 55 92 58 92 62" fill="none" stroke="' + b.stripe + '" stroke-width="9" stroke-linecap="round"/>';
@@ -121,6 +142,7 @@
     s += '<polygon points="46.5,51 53.5,51 50,55" fill="#ff8fa8"/>';
     s += '<path d="M50 55 q-4 5 -8 2 M50 55 q4 5 8 2" fill="none" stroke="' + (b.pat === "tuxedo" || b.id === "putih" ? "#7d7192" : "rgba(40,25,60,.55)") + '" stroke-width="1.6" stroke-linecap="round"/>';
     s += '<path d="M30 52 l-14 -3 M30 55 l-14 3 M70 52 l14 -3 M70 55 l14 3" stroke="rgba(255,255,255,.75)" stroke-width="1.2" stroke-linecap="round"/>';
+    if (b.stars) s += '<path d="M24 38 l1.5 3.5 3.5 1.5 -3.5 1.5 -1.5 3.5 -1.5 -3.5 -3.5 -1.5 3.5 -1.5z M76 70 l1.2 2.8 2.8 1.2 -2.8 1.2 -1.2 2.8 -1.2 -2.8 -2.8 -1.2 2.8 -1.2z M58 30 l1 2.2 2.2 1 -2.2 1 -1 2.2 -1 -2.2 -2.2 -1 2.2 -1z" fill="#ffe27a"/>';
     s += '<ellipse cx="39" cy="95" rx="8" ry="5" fill="' + paw + '" ' + line + '/><ellipse cx="61" cy="95" rx="8" ry="5" fill="' + paw + '" ' + line + '/>';
     s += '</svg>';
     return s;
@@ -202,6 +224,10 @@
     });
   }
   // Suara marah: meong menurun yang serak. Disintesis, jadi tidak butuh berkas audio.
+  function dropped() {
+    S.drops++;
+    if (S.drops === 10) toast(t("toast.drops10"));
+  }
   function angry(pitch) {
     if (S.mute || S.vol < 0.01) return;
     var a = actx(); if (!a) return;
@@ -284,9 +310,13 @@
     c.sprite.style.transform = "scaleX(" + (c.dir < 0 ? -1 : 1) + ")";
   }
 
-  function arrive() {
-    if (cats.filter(function (c) { return !c.done; }).length >= maxCats()) return;
-    var b = pickBreed(), W = roamW(), fromLeft = Math.random() < 0.5;
+  // Tamu langka yang hanya muncul pada waktu tertentu: tengah malam (00.00 sampai 03.59) dan malam Halloween.
+  function ghostChance() { return isHalloween() ? 0.15 : (new Date().getHours() < 4 ? 0.07 : 0); }
+  function arrive(force) {
+    var live = cats.filter(function (c) { return !c.done; }).length;
+    if (live >= maxCats() + (force ? 2 : 0)) return;
+    var b = force ? breedById(force) : (Math.random() < ghostChance() ? breedById("hantu") : pickBreed());
+    var W = roamW(), fromLeft = Math.random() < 0.5;
     var c = makeCat(rnd(NAMES), b.id, 0, fromLeft ? -CAT : W, fromLeft ? 1 : -1);
     cats.push(c);
     sfx("soft", c.pitch, 0.3, 0.1, 0.3);
@@ -321,11 +351,18 @@
     updateStats();
   }
 
+  var combo = [];
   function pet(c, auto) {
     if (!c || c.done) return;
     c.love += petLove(); c.age = 0;
     var g = petCoins() * breedById(c.breed).mult;
     earn(g); S.pets++;
+    if (!auto) {
+      // belaian beruntun dalam 3 detik
+      var nowT = Date.now(); combo.push(nowT);
+      while (combo.length && nowT - combo[0] > 3000) combo.shift();
+      if (combo.length > S.best) S.best = combo.length;
+    }
     floatText(c, "+" + fmt(Math.max(1, g)), "");
     sfx("pet", c.pitch, auto ? 0.2 : 0.6, auto ? 0.08 : 0.25, 0.28);
     if (!auto) { c.el.classList.add("petted"); setTimeout(function () { c.el.classList.remove("petted"); }, 450); }
@@ -426,7 +463,7 @@
     if (!drag) return;
     if (e.buttons === 0) { // tombol mouse dilepas di luar jendela
       var dc = drag.c; dc.el.classList.remove("dragging"); drag = null;
-      if (dc.y > 4) { dc.falling = true; dc.vy = 0; dc.el.classList.add("falling"); angry(dc.pitch); }
+      if (dc.y > 4) { dc.falling = true; dc.vy = 0; dc.el.classList.add("falling"); angry(dc.pitch); dropped(); }
       return;
     }
     if (!drag.moved && Math.abs(e.clientX - drag.startX) < 5 && Math.abs(e.clientY - drag.startY) < 5) return;
@@ -445,7 +482,7 @@
       justDragged = true; setTimeout(function () { justDragged = false; }, 0);
       c.el.classList.remove("dragging");
       c.x = Math.max(0, Math.min(roamW() - CAT, c.x));
-      if (c.y > 4) { c.falling = true; c.vy = 0; c.el.classList.add("falling"); angry(c.pitch); }
+      if (c.y > 4) { c.falling = true; c.vy = 0; c.el.classList.add("falling"); angry(c.pitch); dropped(); }
       else { c.y = 0; sfx("soft", c.pitch, 0.3, 0.1, 0.3); }
       draw(c);
     }
@@ -523,25 +560,50 @@
   /* ---------- pencapaian ---------- */
   function upCount() { return Object.keys(S.up).reduce(function (a, k) { return a + S.up[k]; }, 0); }
   function seenCount() { return Object.keys(S.seen).filter(function (k) { return S.seen[k]; }).length; }
+  function upMax() { return Object.keys(UPS).reduce(function (a, k) { return a + UPS[k].max; }, 0); }
+  function eggOf(k) { return function () { return S.eggs[k] ? 1 : 0; }; }
+  function seenN(id) { return function () { return S.seen[id] || 0; }; }
+  // "hidden": namanya baru terlihat setelah didapat (easter egg).
   var ACH = [
-    { id: "belai1",   n: "Belaian pertama",     d: "Belai kucing 1 kali",            goal: 1,     cur: function () { return S.pets; }, r: 5 },
-    { id: "belai100", n: "Tangan ajaib",        d: "Belai kucing 100 kali",          goal: 100,   cur: function () { return S.pets; }, r: 50 },
-    { id: "belai1k",  n: "Tangan dewa",         d: "Belai kucing 1.000 kali",        goal: 1000,  cur: function () { return S.pets; }, r: 300 },
-    { id: "ikan25",   n: "Juru masak",          d: "Beri ikan 25 kali",              goal: 25,    cur: function () { return S.feeds; }, r: 40 },
-    { id: "ikan250",  n: "Koki andalan",        d: "Beri ikan 250 kali",             goal: 250,   cur: function () { return S.feeds; }, r: 200 },
-    { id: "tamu1",    n: "Tamu pertama senang", d: "Buat 1 tamu senang",             goal: 1,     cur: function () { return S.served; }, r: 10 },
-    { id: "tamu25",   n: "Kafe mulai ramai",    d: "Buat 25 tamu senang",            goal: 25,    cur: function () { return S.served; }, r: 80 },
-    { id: "tamu100",  n: "Kafe terkenal",       d: "Buat 100 tamu senang",           goal: 100,   cur: function () { return S.served; }, r: 300 },
-    { id: "tamu500",  n: "Legenda taskbar",     d: "Buat 500 tamu senang",           goal: 500,   cur: function () { return S.served; }, r: 1000 },
-    { id: "koin1k",   n: "Mulai untung",        d: "Kumpulkan 1.000 koin (total)",   goal: 1000,  cur: function () { return S.total; }, r: 50 },
-    { id: "koin50k",  n: "Juragan kucing",      d: "Kumpulkan 50.000 koin (total)",  goal: 50000, cur: function () { return S.total; }, r: 500 },
-    { id: "reno1",    n: "Renovasi pertama",    d: "Beli 1 perbaikan kafe",          goal: 1,     cur: upCount, r: 20 },
-    { id: "reno20",   n: "Kafe makin mewah",    d: "Beli 20 perbaikan kafe",         goal: 20,    cur: upCount, r: 200 },
-    { id: "kursi",    n: "Kursi penuh",         d: "Jatah tamu mencapai maksimal",   goal: UPS.table.max, cur: function () { return S.up.table; }, r: 150 },
-    { id: "mimi",     n: "Punya pelayan",       d: "Pekerjakan Pelayan Mimi",        goal: 1,     cur: function () { return S.up.helper; }, r: 30 },
-    { id: "koleksi4", n: "Pencinta kucing",     d: "Temui 4 jenis kucing",           goal: 4,     cur: seenCount, r: 60 },
-    { id: "koleksi8", n: "Kolektor lengkap",    d: "Temui semua 8 jenis kucing",     goal: 8,     cur: seenCount, r: 500 },
-    { id: "emas",     n: "Kucing emas!",        d: "Temui si Kucing Emas",           goal: 1,     cur: function () { return S.seen.emas ? 1 : 0; }, r: 200 }
+    { id: "belai1",    goal: 1,       cur: function () { return S.pets; }, r: 5 },
+    { id: "belai250",  goal: 250,     cur: function () { return S.pets; }, r: 60 },
+    { id: "belai2500", goal: 2500,    cur: function () { return S.pets; }, r: 400 },
+    { id: "belai25k",  goal: 25000,   cur: function () { return S.pets; }, r: 3000 },
+    { id: "ikan50",    goal: 50,      cur: function () { return S.feeds; }, r: 60 },
+    { id: "ikan500",   goal: 500,     cur: function () { return S.feeds; }, r: 300 },
+    { id: "ikan5k",    goal: 5000,    cur: function () { return S.feeds; }, r: 2000 },
+    { id: "tamu1",     goal: 1,       cur: function () { return S.served; }, r: 10 },
+    { id: "tamu50",    goal: 50,      cur: function () { return S.served; }, r: 100 },
+    { id: "tamu250",   goal: 250,     cur: function () { return S.served; }, r: 500 },
+    { id: "tamu1000",  goal: 1000,    cur: function () { return S.served; }, r: 2500 },
+    { id: "tamu5000",  goal: 5000,    cur: function () { return S.served; }, r: 12000 },
+    { id: "koin5k",    goal: 5000,    cur: function () { return S.total; }, r: 100 },
+    { id: "koin250k",  goal: 250000,  cur: function () { return S.total; }, r: 2000 },
+    { id: "koin5m",    goal: 5000000, cur: function () { return S.total; }, r: 30000 },
+    { id: "reno1",     goal: 1,       cur: upCount, r: 20 },
+    { id: "reno25",    goal: 25,      cur: upCount, r: 300 },
+    { id: "reno65",    goal: upMax(), cur: upCount, r: 10000 },
+    { id: "kursi",     goal: UPS.table.max, cur: function () { return S.up.table; }, r: 200 },
+    { id: "mimi",      goal: 1,       cur: function () { return S.up.helper; }, r: 30 },
+    { id: "mimi10",    goal: UPS.helper.max, cur: function () { return S.up.helper; }, r: 1500 },
+    { id: "koleksi4",  goal: 4,       cur: seenCount, r: 60 },
+    { id: "koleksi9",  goal: 9,       cur: seenCount, r: 300 },
+    { id: "koleksi14", goal: 14,      cur: seenCount, r: 1500 },
+    { id: "koleksiall", goal: BREEDS.length, cur: seenCount, r: 6000 },
+    { id: "emas",      goal: 1,       cur: seenN("emas"), r: 300 },
+    { id: "emas5",     goal: 5,       cur: seenN("emas"), r: 2500 },
+    { id: "bintang",   goal: 1,       cur: seenN("bintang"), r: 800 },
+    { id: "pelangi",   goal: 1,       cur: seenN("pelangi"), r: 1500 },
+    { id: "combo10",   goal: 10,      cur: function () { return S.best; }, r: 300 },
+    { id: "combo18",   goal: 18,      cur: function () { return S.best; }, r: 1500 },
+    { id: "hari3",     goal: 3,       cur: function () { return S.days; }, r: 200 },
+    { id: "hari14",    goal: 14,      cur: function () { return S.days; }, r: 1500 },
+    { id: "hari60",    goal: 60,      cur: function () { return S.days; }, r: 8000 },
+    { id: "hantu",     goal: 1,       cur: seenN("hantu"), r: 1000, hidden: true },
+    { id: "logo",      goal: 1,       cur: eggOf("logo"), r: 500, hidden: true },
+    { id: "gravitasi", goal: 30,      cur: function () { return S.drops; }, r: 400, hidden: true },
+    { id: "hariKucing", goal: 1,      cur: eggOf("catday"), r: 800, hidden: true },
+    { id: "halloween", goal: 1,       cur: eggOf("halloween"), r: 800, hidden: true }
   ];
   var notifyQ = [], notifyBusy = false;
   function notify(msg) { notifyQ.push(msg); if (!notifyBusy) notifyNext(); }
@@ -565,8 +627,12 @@
     ACH.forEach(function (a) {
       var ok = !!S.ach[a.id]; if (ok) done++;
       var cur = Math.min(a.cur(), a.goal);
+      if (a.hidden && !ok) {
+        h += '<div class="ach secret"><div class="badge">?</div><div class="grow"><b>???</b><span>' + t("ach.secret") + '</span></div><div class="rw">+' + fmt(a.r) + '</div></div>';
+        return;
+      }
       h += '<div class="ach' + (ok ? " done" : "") + '"><div class="badge">' + (ok ? "\u2713" : Math.round(cur / a.goal * 100) + "%") + '</div>'
-        + '<div class="grow"><b>' + t("ach." + a.id + ".n") + '</b><span>' + t("ach." + a.id + ".d") + (ok ? "" : " (" + fmt(cur) + "/" + fmt(a.goal) + ")") + '</span>'
+        + '<div class="grow"><b>' + t("ach." + a.id + ".n") + '</b><span>' + t("ach." + a.id + ".d", { n: BREEDS.length }) + (ok || a.hidden ? "" : " (" + fmt(cur) + "/" + fmt(a.goal) + ")") + '</span>'
         + (ok ? "" : '<div class="bar"><i style="width:' + (cur / a.goal * 100) + '%"></i></div>') + '</div>'
         + '<div class="rw">+' + fmt(a.r) + '</div></div>';
     });
@@ -584,7 +650,7 @@
     updateUps();
     checkAch();
     if (!$("#panel").hidden && !$("#tabAch").hidden) renderAch();
-    else $("#achCount").textContent = Object.keys(S.ach).length + "/" + ACH.length;
+    else $("#achCount").textContent = ACH.filter(function (a) { return S.ach[a.id]; }).length + "/" + ACH.length;
   }
 
   /* ---------- letak tombol kucing dan tinggi panel ---------- */
@@ -834,6 +900,7 @@
   });
   $("#mute").addEventListener("click", function () { setMute(!S.mute); save(); });
   $("#quit").addEventListener("click", function () { save(); api.quit(); });
+  $("#quit2").addEventListener("click", function () { save(); api.quit(); });
 
   var resetArmed = false, resetT;
   $("#reset").addEventListener("click", function () {
@@ -852,6 +919,7 @@
   /* ---------- loop ---------- */
   var helperAcc = 0;
   function economy(dt) {
+    dayCheck();
     S.fish = Math.min(fishMax(), S.fish + fishRegen() * dt);
     S.spawnT -= dt;
     if (S.spawnT <= 0) { arrive(); S.spawnT = arriveEvery() * (0.7 + Math.random() * 0.6); }
@@ -889,7 +957,27 @@
   }
   if (S.lang) window.I18N.set(S.lang);
   window.I18N.apply(document);
-  renderUps(); renderBook(); updateStats(); setMute(S.mute); applyLook(); applyLang(); placeUi(); setHud(S.hudHidden);
+  // hari bermain, dan kejutan pada tanggal tertentu
+  function todayStamp() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function dayCheck() {
+    var ts = todayStamp();
+    if (S.dayStamp === ts) return;
+    S.dayStamp = ts; S.days++;
+    if (isCatDay()) { S.eggs.catday = 1; setTimeout(function () { notify(t("toast.catday")); }, 1500); }
+    if (isHalloween()) { S.eggs.halloween = 1; setTimeout(function () { notify(t("toast.halloween")); }, 1500); }
+    save();
+  }
+  // Rahasia: ketuk logo kafe di panel berkali-kali dengan cepat.
+  var logoTaps = [];
+  document.querySelector(".sign svg").addEventListener("click", function () {
+    var n = Date.now(); logoTaps.push(n);
+    while (logoTaps.length && n - logoTaps[0] > 4000) logoTaps.shift();
+    if (logoTaps.length >= 7) {
+      logoTaps = []; S.eggs.logo = 1;
+      toast(t("toast.egg.rainbow")); arrive("pelangi"); updateStats(); save();
+    }
+  });
+  renderUps(); renderBook(); updateStats(); setMute(S.mute); applyLook(); applyLang(); dayCheck(); placeUi(); setHud(S.hudHidden);
   if (!S.intro) { if (S.hudHidden) setHud(false); openGuide(); }
 
   var lastT = performance.now(), econAcc = 0;
