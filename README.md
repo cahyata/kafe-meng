@@ -3,9 +3,11 @@
 Kafe kucing santai yang hidup di atas taskbar Windows kamu. Kucing-kucing lucu mampir, jalan-jalan, dan menunggu dibelai. Kamu jadi bos kafenya, tanpa timer yang memburu dan tanpa kalah.
 
 <!-- Ganti dengan screenshot atau GIF asli, misalnya taruh di folder docs/ -->
-![Kucing berjalan di taskbar](docs/screenshot-taskbar.png)
+<img width="2558" height="273" alt="image" src="https://github.com/user-attachments/assets/39f15a09-bd51-448e-a790-606f6eba4122" />
 
-![Panel kafe](docs/screenshot-panel.png)
+
+<img width="371" height="486" alt="image" src="https://github.com/user-attachments/assets/177fb36f-4442-4fc9-a353-e26fa46faa0f" />
+
 
 ## Download dan install
 
