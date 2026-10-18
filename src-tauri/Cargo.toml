@@ -1,6 +1,6 @@
 [package]
 name = "kafe-meng"
-version = "2.2.0"
+version = "2.2.1"
 description = "Kafe Meng"
 authors = ["cahyata"]
 edition = "2021"

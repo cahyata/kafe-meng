@@ -170,7 +170,7 @@
   // Setelah laptop sleep atau layar mati, AudioContext bisa mati atau terputus dari perangkat suara. Dibuat ulang kalau tidak jalan.
   function resetAudio() {
     try { if (AC) AC.close(); } catch (e) {}
-    AC = null; MASTER = null;
+    AC = null; MASTER = null; BUF = {}; voices = 0;
   }
   function actx() {
     if (AC && AC.state === "closed") AC = null;
@@ -252,37 +252,39 @@
     feed:  ["cat_mewfood.wav"],
     happy: ["cat_mewpurr.wav", "cat_mewpurr2.wav"]
   };
-  var ready = {};
-  Object.keys(FILES).forEach(function (kind) {
-    ready[kind] = [];
-    FILES[kind].forEach(function (f) {
-      var a = new Audio();
-      a.preload = "auto";
-      a.addEventListener("canplaythrough", function () { if (ready[kind].indexOf(f) < 0) ready[kind].push(f); }, { once: true });
-      a.src = "sounds/" + f;
+  // File suara dibaca dan didekode sekali ke memori, lalu tiap bunyi hanya sumber sekali pakai yang langsung dibuang selesai main.
+  // (Sebelumnya tiap bunyi membuat elemen audio baru yang tidak pernah dilepas; setelah beberapa menit suaranya jadi pecah.)
+  var BUF = {}, voices = 0;
+  function loadBufs() {
+    var a = AC;
+    Object.keys(FILES).forEach(function (kind) {
+      FILES[kind].forEach(function (f) {
+        if (BUF[f] !== undefined) return;
+        BUF[f] = "wait";
+        fetch("sounds/" + f).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+          .then(function (ab) { return a.decodeAudioData(ab); })
+          .then(function (buf) { if (AC === a) BUF[f] = buf; })
+          .catch(function () { if (AC === a) BUF[f] = "fail"; });
+      });
     });
-  });
+  }
   function sfx(kind, pitch, fileVol, synthVol, synthDur) {
     if (S.mute || S.vol < 0.01) return;
-    var list = ready[kind];
-    if (list && list.length) {
+    var a = actx();
+    if (a && BUF.__a !== a) { BUF = { __a: a }; loadBufs(); }
+    var list = (FILES[kind] || []).filter(function (f) { return BUF[f] && typeof BUF[f] === "object"; });
+    if (a && list.length) {
       var now = performance.now();
-      if (now - lastSnd < 150) return;
+      if (now - lastSnd < 150 || voices >= 5) return;
       lastSnd = now;
-      var a = new Audio("sounds/" + rnd(list));
-      var vol = Math.max(0, Math.min(1, fileVol * S.vol));
-      a.playbackRate = pitch;
-      a.preservesPitch = false;
-      var ctx = actx(), routed = false;
-      if (ctx) {
-        // file audio juga lewat limiter yang sama
-        try {
-          var src = ctx.createMediaElementSource(a), gn = ctx.createGain();
-          gn.gain.value = fileVol; src.connect(gn); gn.connect(master(ctx)); routed = true;
-        } catch (e) {}
-      }
-      if (!routed) a.volume = vol;
-      a.play().catch(function () {});
+      var src = a.createBufferSource(), gn = a.createGain();
+      src.buffer = BUF[rnd(list)];
+      src.playbackRate.value = pitch;
+      gn.gain.value = fileVol;
+      src.connect(gn); gn.connect(master(a));
+      voices++;
+      src.onended = function () { voices = Math.max(0, voices - 1); try { src.disconnect(); gn.disconnect(); } catch (e) {} };
+      src.start();
       return;
     }
     meow(pitch, synthDur, synthVol, kind);
