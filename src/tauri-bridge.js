@@ -34,6 +34,8 @@
     appAction: function (name) { return inv("app_action", { name: name }); },
     onNotice: function (cb) { listen("notice", function (e) { cb(e.payload); }); },
     onToggleHud: function (cb) { listen("toggle-hud", function () { cb(); }); },
+    beat: function () { inv("beat").catch(noop); },
+    onResumed: function (cb) { listen("resumed", function () { cb(); }); },
     panelOpen: function (open) { inv("panel_open", { open: !!open }).catch(noop); },
     onOutsideClick: function (cb) { listen("outside-click", function () { cb(); }); },
     onCursor: function (cb) { listen("cursor", function (e) { cb(e.payload[0], e.payload[1]); }); }

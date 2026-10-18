@@ -3,7 +3,7 @@ use std::{
     io::Write,
     path::PathBuf,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Mutex,
     },
     thread,
@@ -30,6 +30,12 @@ struct AppState {
     announced: Mutex<Option<String>>,
     /// Panel kafe sedang terbuka (dilaporkan game), supaya klik di luarnya bisa menutupnya.
     panel_open: AtomicBool,
+    /// Detak terakhir dari game (ms sejak epoch). Kalau berhenti lama, halaman dianggap mati dan dimuat ulang.
+    beat: AtomicU64,
+}
+
+fn now_ms() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0)
 }
 
 #[derive(Serialize)]
@@ -157,6 +163,11 @@ fn panel_open(app: AppHandle, open: bool) {
 }
 
 #[tauri::command]
+fn beat(app: AppHandle) {
+    app.state::<AppState>().beat.store(now_ms(), Ordering::Relaxed);
+}
+
+#[tauri::command]
 fn quit(app: AppHandle) {
     app.exit(0);
 }
@@ -168,8 +179,22 @@ fn spawn_watcher(app: AppHandle) {
         let mut last = (i32::MIN, i32::MIN);
         let mut ticks: u32 = 0;
         let mut was_down = false;
+        let mut prev = now_ms();
+        app.state::<AppState>().beat.store(prev, Ordering::Relaxed);
         loop {
             ticks = ticks.wrapping_add(1);
+            let now = now_ms();
+            if now.saturating_sub(prev) > 8000 {
+                // Loop ini tertidur lama (laptop sleep atau layar mati): rapikan jendela dan kabari game agar suaranya disiapkan ulang.
+                log(&app, "bangun dari sleep");
+                app.state::<AppState>().beat.store(now, Ordering::Relaxed);
+                place(&app);
+                if let Some(w) = main_window(&app) {
+                    let _ = w.set_always_on_top(true);
+                }
+                let _ = app.emit_to("main", "resumed", ());
+            }
+            prev = now;
             let Some(w) = main_window(&app) else {
                 thread::sleep(Duration::from_millis(500));
                 continue;
@@ -180,8 +205,16 @@ fn spawn_watcher(app: AppHandle) {
                 let _ = w.set_always_on_top(true);
             }
             if !w.is_visible().unwrap_or(false) {
+                app.state::<AppState>().beat.store(now, Ordering::Relaxed);
                 thread::sleep(Duration::from_millis(300));
                 continue;
+            }
+            // Halaman game berhenti berdetak lama (WebView2 mati atau macet): muat ulang. Progres aman, game menyimpan tiap 5 detik.
+            // Batasnya longgar karena WebView2 memperlambat timer saat jendela tertutup aplikasi layar penuh.
+            if now.saturating_sub(app.state::<AppState>().beat.load(Ordering::Relaxed)) > 180_000 {
+                log(&app, "game tidak berdetak, memuat ulang halaman");
+                app.state::<AppState>().beat.store(now, Ordering::Relaxed);
+                let _ = w.reload();
             }
             // Klik di luar panel kafe: jendela klik-tembus tidak melihatnya, jadi dilaporkan dari sini.
             let panel_open = app.state::<AppState>().panel_open.load(Ordering::Relaxed);
@@ -382,6 +415,7 @@ pub fn run() {
             write_save,
             set_ignore,
             panel_open,
+            beat,
             quit,
             app_state,
             app_action

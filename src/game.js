@@ -30,16 +30,16 @@
   var NAMES = ["Mochi", "Bakpao", "Cilok", "Tahu", "Pepeng", "Nasi", "Boba", "Kopi", "Susu", "Onde", "Cimol", "Pudding", "Kerupuk", "Bubur", "Cendol", "Roti", "Komo", "Kiko", "Mimi", "Gembul", "Telur", "Donat", "Siomay", "Klepon"];
 
   var UPS = {
-    table:   { n: "Jatah tamu",      d: "Satu kucing lagi boleh mampir bersamaan", base: 60, g: 2.4, max: 4 },
-    pet:     { n: "Belaian lembut",  d: "Belaian lebih menyenangkan, koin naik",   base: 25, g: 1.6, max: 15 },
-    feed:    { n: "Ikan premium",    d: "Ikan dan tip dari tamu jadi lebih besar", base: 40, g: 1.7, max: 15 },
-    kitchen: { n: "Dapur ikan",      d: "Stok ikan lebih banyak, terisi lebih cepat", base: 35, g: 1.7, max: 15 },
-    decor:   { n: "Dekorasi cantik", d: "Tamu datang lebih sering",                base: 50, g: 1.9, max: 6 },
-    helper:  { n: "Pelayan Mimi",    d: "Membelai tamu sendiri, juga saat kamu pergi", base: 80, g: 1.8, max: 10 }
+    table:   { n: "Jatah tamu",      d: "Satu kucing lagi boleh mampir bersamaan", base: 90, g: 3.0, max: 4 },
+    pet:     { n: "Belaian lembut",  d: "Belaian lebih menyenangkan, koin naik",   base: 30, g: 1.9, max: 15 },
+    feed:    { n: "Ikan premium",    d: "Ikan dan tip dari tamu jadi lebih besar", base: 45, g: 1.9, max: 15 },
+    kitchen: { n: "Dapur ikan",      d: "Stok ikan lebih banyak, terisi lebih cepat", base: 40, g: 1.9, max: 15 },
+    decor:   { n: "Dekorasi cantik", d: "Tamu datang lebih sering",                base: 70, g: 2.6, max: 6 },
+    helper:  { n: "Pelayan Mimi",    d: "Membelai tamu sendiri, juga saat kamu pergi", base: 120, g: 2.1, max: 10 }
   };
 
   function fresh() {
-    return { coins: 0, fish: 6, up: { table: 0, pet: 0, feed: 0, kitchen: 0, decor: 0, helper: 0 }, seen: {}, served: 0, mute: false, total: 0, pets: 0, feeds: 0, ach: {}, hudHidden: false, helperOff: false, intro: false, vol: 1, theme: "auto", size: "m", lang: "", drops: 0, best: 0, days: 0, dayStamp: "", eggs: {}, btn: { r: 8, b: 6 }, panelH: 470, cats: [], spawnT: 0.5, last: Date.now() };
+    return { coins: 0, fish: 6, up: { table: 0, pet: 0, feed: 0, kitchen: 0, decor: 0, helper: 0 }, seen: {}, served: 0, mute: false, total: 0, pets: 0, feeds: 0, ach: {}, hudHidden: false, helperOn: null, intro: false, vol: 1, theme: "auto", size: "m", lang: "", drops: 0, best: 0, days: 0, dayStamp: "", eggs: {}, btn: { r: 8, b: 6 }, panelH: 470, cats: [], spawnT: 0.5, last: Date.now() };
   }
   var S = fresh();
   var cats = []; // kucing yang sedang tampil, lengkap dengan elemen DOM
@@ -51,7 +51,7 @@
       if (!raw) return null;
       var d = JSON.parse(raw), f = fresh();
       f.coins = +d.coins || 0; f.fish = +d.fish || 0; f.served = +d.served || 0; f.last = +d.last || Date.now(); f.mute = !!d.mute;
-      f.total = +d.total || f.coins; f.pets = +d.pets || 0; f.feeds = +d.feeds || 0; f.ach = d.ach || {}; f.hudHidden = !!d.hudHidden; f.helperOff = !!d.helperOff;
+      f.total = +d.total || f.coins; f.pets = +d.pets || 0; f.feeds = +d.feeds || 0; f.ach = d.ach || {}; f.hudHidden = !!d.hudHidden; f.helperOn = d.helperOn == null ? (d.helperOff ? 0 : null) : Math.max(0, Math.round(+d.helperOn) || 0);
       f.vol = d.vol === undefined ? 1 : Math.max(0, Math.min(1, +d.vol || 0));
       f.theme = ["auto", "light", "dark"].indexOf(d.theme) >= 0 ? d.theme : "auto";
       f.drops = +d.drops || 0; f.best = +d.best || 0; f.days = +d.days || 0; f.dayStamp = typeof d.dayStamp === "string" ? d.dayStamp : ""; f.eggs = d.eggs && typeof d.eggs === "object" ? d.eggs : {};
@@ -90,7 +90,9 @@
   function fishMax() { return 10 + 5 * S.up.kitchen; }
   function fishRegen() { return 0.12 + 0.08 * S.up.kitchen; }
   function arriveEvery() { return Math.max(2.5, 9 - 1.2 * S.up.decor); }
-  function helperRate() { return S.helperOff ? 0 : 0.35 * S.up.helper; }
+  // Berapa Pelayan Mimi yang bekerja: null = semua yang dimiliki, angka = dibatasi pemain lewat tombol - dan +.
+  function helperActive() { var n = S.up.helper; return S.helperOn == null ? n : Math.max(0, Math.min(S.helperOn, n)); }
+  function helperRate() { return 0.35 * helperActive(); }
   function upCost(k) { return Math.round(UPS[k].base * Math.pow(UPS[k].g, S.up[k])); }
   var FISH_PRICE = 12, FISH_PACK = 5;
 
@@ -165,11 +167,24 @@
     MASTER.out.gain.value = 0.9 * S.vol * S.vol;
     return MASTER.input;
   }
+  // Setelah laptop sleep atau layar mati, AudioContext bisa mati atau terputus dari perangkat suara. Dibuat ulang kalau tidak jalan.
+  function resetAudio() {
+    try { if (AC) AC.close(); } catch (e) {}
+    AC = null; MASTER = null;
+  }
   function actx() {
+    if (AC && AC.state === "closed") AC = null;
     if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
-    if (AC && AC.state === "suspended") AC.resume();
+    if (AC && AC.state !== "running") {
+      var cur = AC;
+      cur.resume().catch(function () { if (AC === cur) resetAudio(); });
+    }
     return AC;
   }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) resetAudio(); });
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener("devicechange", resetAudio);
+  if (api.onResumed) api.onResumed(resetAudio);
+  if (api.beat) { api.beat(); setInterval(api.beat, 5000); }
   // Gelombang dasar yang lembut: harmonik turun cepat, jadi tidak berdengung seperti sawtooth.
   var WAVE = null;
   function softWave(a) {
@@ -366,8 +381,10 @@
     return c;
   }
 
+  // Posisi dibulatkan ke piksel layar asli: kalau jatuh di antara dua piksel (mis. di layar 125% atau 150%), gambar kucing tampak buram.
+  function snap(v) { var d = window.devicePixelRatio || 1; return Math.round(v * d) / d; }
   function draw(c) {
-    c.el.style.transform = "translate(" + c.x.toFixed(1) + "px," + (-(c.y || 0)).toFixed(1) + "px)";
+    c.el.style.transform = "translate(" + snap(c.x) + "px," + snap(-(c.y || 0)) + "px)";
     c.sprite.style.transform = "scaleX(" + (c.dir < 0 ? -1 : 1) + ")";
   }
 
@@ -583,7 +600,7 @@
     var h = "";
     Object.keys(UPS).forEach(function (k) {
       h += '<div class="up" data-k="' + k + '"><div class="tile t-' + k + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[k] + '</svg></div><div class="txt"><b>' + t("up." + k + ".n") + '</b><span>' + t("up." + k + ".d") + '</span><div class="dots"></div>'
-        + (k === "helper" ? '<button class="btn small" type="button" id="helperToggle" hidden></button>' : "")
+        + (k === "helper" ? '<div class="stepper" id="helperStep" hidden><button class="btn small" type="button" id="helperMinus" data-i18n-aria="helper.less">-</button><span id="helperN"></span><button class="btn small" type="button" id="helperPlus" data-i18n-aria="helper.more">+</button></div>' : "")
         + '</div><button class="btn main" type="button" data-up="' + k + '"></button></div>';
     });
     $("#ups").innerHTML = h;
@@ -599,10 +616,12 @@
       if (k === "table") row.querySelector("span").textContent = t("up.table.now", { a: maxCats(), b: 2 + max });
       var b = row.querySelector("button[data-up]");
       if (k === "helper") {
-        var tg = $("#helperToggle");
-        tg.hidden = lv < 1;
-        tg.textContent = t(S.helperOff ? "helper.on" : "helper.off");
-        row.querySelector(".txt > span").textContent = S.helperOff ? t("up.helper.break") : t("up.helper.d");
+        var act = helperActive();
+        $("#helperStep").hidden = lv < 1;
+        $("#helperN").textContent = t("helper.work", { a: act, b: lv });
+        $("#helperMinus").disabled = act <= 0;
+        $("#helperPlus").disabled = act >= lv;
+        row.querySelector(".txt > span").textContent = lv >= 1 && act === 0 ? t("up.helper.break") : t("up.helper.d");
       }
       if (lv >= max) { b.textContent = t("up.max"); b.disabled = true; }
       else { b.innerHTML = t("up.up") + "<small>" + t("n.coins", { n: fmt(upCost(k)) }) + "</small>"; b.disabled = S.coins < upCost(k); }
@@ -721,7 +740,7 @@
   var tdrag = null, tabJust = false, prs = null, panelAbove = true;
   function uiScale() { return SIZES[S.size] || 1; }
   function placeUi() {
-    var z = uiScale(), W = window.innerWidth, H = window.innerHeight, bw = 54 * z;
+    var z = uiScale(), W = window.innerWidth, H = window.innerHeight, bw = 64 * z;
     S.btn.r = Math.max(4, Math.min(W - bw - 4, S.btn.r));
     S.btn.b = Math.max(4, Math.min(H - bw - 4, S.btn.b));
     var tab = $("#hudTab"), panel = $("#panel");
@@ -875,7 +894,9 @@
     if (!b) return;
     var k = b.getAttribute("data-up");
     if (S.up[k] >= UPS[k].max || S.coins < upCost(k)) return;
+    var allWork = k === "helper" && helperActive() === S.up.helper;
     S.coins -= upCost(k); S.up[k]++;
+    if (allWork) S.helperOn = null; // pelayan baru langsung ikut bekerja kalau yang lain juga sedang bekerja
     toast(t("toast.up", { n: t("up." + k + ".n"), l: S.up[k] }));
     updateStats(); save();
   });
@@ -952,9 +973,12 @@
   $("#openGuide").addEventListener("click", function () { setPanel(false); openGuide(); });
 
   $("#ups").addEventListener("click", function (e) {
-    if (!e.target.closest("#helperToggle")) return;
-    S.helperOff = !S.helperOff;
-    toast(t(S.helperOff ? "toast.helperoff" : "toast.helperon"));
+    var m = e.target.closest("#helperMinus, #helperPlus");
+    if (!m) return;
+    var before = helperActive(), n = Math.max(0, Math.min(S.up.helper, before + (m.id === "helperPlus" ? 1 : -1)));
+    if (n === before) return;
+    S.helperOn = n === S.up.helper ? null : n;
+    if (before === 0) toast(t("toast.helperon")); else if (n === 0) toast(t("toast.helperoff"));
     updateUps(); save();
   });
   $("#buyFish").addEventListener("click", function () {
@@ -1046,6 +1070,7 @@
 
   var lastT = performance.now(), econAcc = 0;
   function frame(now) {
+    if (now - lastT > 3000) resetAudio(); // loncatan waktu besar = baru bangun dari sleep
     var dt = Math.min(0.25, (now - lastT) / 1000);
     lastT = now;
     moveCats(dt);
