@@ -5,3 +5,5 @@ Semua suara berlisensi CC0 (domain publik), dari OpenGameArt.org:
 File audio diunduh dengan download-sounds.ps1. Kalau folder ini kosong, game memakai suara sintetis.
 
 Font Nunito (fonts/Nunito.woff2) oleh The Nunito Project Authors, lisensi SIL Open Font License 1.1 (lihat fonts/Nunito-OFL.txt).
+
+Catatan: file di folder ini sudah dipangkas (bagian hening atau noise di awal dan akhir dibuang, fade in/out pendek, volume disamakan). Isinya tetap karya aslinya.

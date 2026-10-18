@@ -151,37 +151,89 @@
 
   /* ---------- suara (disintesis, tanpa file audio) ---------- */
   var AC = null, lastSnd = 0;
+  // Semua suara lewat satu limiter supaya volumenya imbang, tidak ada yang tiba-tiba keras, dan beberapa suara sekaligus tidak pecah.
+  var MASTER = null;
+  function master(a) {
+    if (!MASTER || MASTER.ctx !== a) {
+      var c = a.createDynamicsCompressor();
+      c.threshold.value = -16; c.knee.value = 8; c.ratio.value = 10; c.attack.value = 0.004; c.release.value = 0.25;
+      var g = a.createGain();
+      c.connect(g); g.connect(a.destination);
+      MASTER = { ctx: a, input: c, out: g };
+    }
+    // Volume dari slider dipasang SETELAH limiter. Kalau sebelumnya, limiter meratakan perbedaannya dan slider terasa tidak berfungsi.
+    MASTER.out.gain.value = 0.9 * S.vol * S.vol;
+    return MASTER.input;
+  }
   function actx() {
     if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
     if (AC && AC.state === "suspended") AC.resume();
     return AC;
   }
-  function meow(pitch, dur, vol) {
+  // Gelombang dasar yang lembut: harmonik turun cepat, jadi tidak berdengung seperti sawtooth.
+  var WAVE = null;
+  function softWave(a) {
+    if (!WAVE || WAVE.ctx !== a) {
+      var n = 14, re = new Float32Array(n), im = new Float32Array(n);
+      for (var i = 1; i < n; i++) im[i] = 1 / (i * i);
+      WAVE = { ctx: a, w: a.createPeriodicWave(re, im) };
+    }
+    return WAVE.w;
+  }
+  // Satu not meong: nada naik lalu turun ("mi-aw") dengan vibrato halus dan dua formant yang bergeser mi → a → o.
+  function note(a, t, pitch, dur, vol, base, peak, end) {
+    var o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain();
+    var f1 = a.createBiquadFilter(), f2 = a.createBiquadFilter(), g1 = a.createGain(), g2 = a.createGain(), g = a.createGain();
+    o.setPeriodicWave(softWave(a));
+    o.frequency.setValueAtTime(base * pitch, t);
+    o.frequency.exponentialRampToValueAtTime(peak * pitch, t + dur * 0.3);
+    o.frequency.exponentialRampToValueAtTime(end * pitch, t + dur);
+    lfo.frequency.value = 5; lg.gain.value = dur > 0.35 ? 5 * pitch : 0;
+    lfo.connect(lg); lg.connect(o.frequency);
+    f1.type = "bandpass"; f1.Q.value = 2.5;
+    f1.frequency.setValueAtTime(420, t);
+    f1.frequency.linearRampToValueAtTime(980, t + dur * 0.35);
+    f1.frequency.linearRampToValueAtTime(520, t + dur);
+    f2.type = "bandpass"; f2.Q.value = 3;
+    f2.frequency.setValueAtTime(2500, t);
+    f2.frequency.linearRampToValueAtTime(1900, t + dur * 0.4);
+    f2.frequency.linearRampToValueAtTime(1100, t + dur);
+    g1.gain.value = 1; g2.gain.value = 0.55;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.04, dur * 0.2));
+    g.gain.exponentialRampToValueAtTime(vol * 0.7, t + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(f1); o.connect(f2); f1.connect(g1); f2.connect(g2); g1.connect(g); g2.connect(g); g.connect(master(a));
+    o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+  }
+  // kind: "pet" mew pendek, "soft" mew kecil, "feed" mrrow panjang, "happy" kicau naik (prrp-prrp)
+  function meow(pitch, dur, vol, kind) {
     if (S.mute || S.vol < 0.01) return;
-    vol = Math.max(0.0001, vol * S.vol);
+    vol = Math.max(0.0001, vol) * 1.6;
     var now = performance.now();
     if (now - lastSnd < 150) return;
     lastSnd = now;
     var a = actx(); if (!a) return;
-    var t = a.currentTime, o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
-    o.type = "sawtooth"; f.type = "bandpass"; f.Q.value = 4;
-    o.frequency.setValueAtTime(420 * pitch, t);
-    o.frequency.linearRampToValueAtTime(640 * pitch, t + dur * 0.35);
-    o.frequency.exponentialRampToValueAtTime(330 * pitch, t + dur);
-    f.frequency.setValueAtTime(900, t);
-    f.frequency.linearRampToValueAtTime(1900, t + dur * 0.4);
-    f.frequency.linearRampToValueAtTime(1000, t + dur);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.04);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(f); f.connect(g); g.connect(a.destination);
-    o.start(t); o.stop(t + dur + 0.05);
+    var t = a.currentTime;
+    if (kind === "happy") {
+      [0, 0.11, 0.24].forEach(function (off, i) { note(a, t + off, pitch, 0.1, vol * (i === 2 ? 1 : 0.8), 620 + i * 60, 900 + i * 90, 760 + i * 70); });
+    } else if (kind === "feed") {
+      note(a, t, pitch, Math.max(0.45, dur), vol, 560, 880, 480);
+      note(a, t + 0.5, pitch * 0.95, 0.22, vol * 0.6, 620, 760, 520);
+    } else if (kind === "lift") {
+      // "mew!" kaget: pendek, tinggi, naik
+      note(a, t, pitch * 1.18, 0.2, vol * 0.9, 760, 1350, 1000);
+    } else if (kind === "soft") {
+      note(a, t, pitch * 1.12, Math.max(0.22, dur * 0.8), vol * 0.7, 700, 1000, 760);
+    } else {
+      note(a, t, pitch * 1.05, Math.max(0.3, dur), vol, 640, 1020, 620);
+    }
   }
 
   // Suara asli (CC0 dari OpenGameArt) dibaca dari renderer/sounds. Kalau file belum ada, dipakai suara sintetis di atas.
   var FILES = {
-    pet:   ["kitten_mew-1_0.ogg", "Meow.ogg"],
-    soft:  ["cat_softmew.wav"],
+    pet:   ["Meow.ogg"],
+    soft:  ["kitten_mew-1_0.ogg"],
     feed:  ["cat_mewfood.wav"],
     happy: ["cat_mewpurr.wav", "cat_mewpurr2.wav"]
   };
@@ -203,13 +255,22 @@
       if (now - lastSnd < 150) return;
       lastSnd = now;
       var a = new Audio("sounds/" + rnd(list));
-      a.volume = Math.max(0, Math.min(1, fileVol * S.vol));
+      var vol = Math.max(0, Math.min(1, fileVol * S.vol));
       a.playbackRate = pitch;
       a.preservesPitch = false;
+      var ctx = actx(), routed = false;
+      if (ctx) {
+        // file audio juga lewat limiter yang sama
+        try {
+          var src = ctx.createMediaElementSource(a), gn = ctx.createGain();
+          gn.gain.value = fileVol; src.connect(gn); gn.connect(master(ctx)); routed = true;
+        } catch (e) {}
+      }
+      if (!routed) a.volume = vol;
       a.play().catch(function () {});
       return;
     }
-    meow(pitch, synthDur, synthVol);
+    meow(pitch, synthDur, synthVol, kind);
   }
 
   function crunch() {
@@ -219,8 +280,8 @@
     for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
     [0, 0.1].forEach(function (off) {
       var s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-      s.buffer = buf; f.type = "lowpass"; f.frequency.value = 2400; g.gain.value = 0.25 * S.vol;
-      s.connect(f); f.connect(g); g.connect(a.destination); s.start(a.currentTime + off);
+      s.buffer = buf; f.type = "lowpass"; f.frequency.value = 2400; g.gain.value = 0.25;
+      s.connect(f); f.connect(g); g.connect(master(a)); s.start(a.currentTime + off);
     });
   }
   // Suara marah: meong menurun yang serak. Disintesis, jadi tidak butuh berkas audio.
@@ -232,7 +293,7 @@
     if (S.mute || S.vol < 0.01) return;
     var a = actx(); if (!a) return;
     lastSnd = performance.now();
-    var t0 = a.currentTime, dur = 0.55, v = S.vol;
+    var t0 = a.currentTime, dur = 0.55, v = 1;
     var o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
     o.type = "sawtooth"; f.type = "bandpass"; f.Q.value = 3;
     o.frequency.setValueAtTime(560 * pitch, t0);
@@ -242,7 +303,7 @@
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(0.32 * v, t0 + 0.04);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(f); f.connect(g); g.connect(a.destination);
+    o.connect(f); f.connect(g); g.connect(master(a));
     o.start(t0); o.stop(t0 + dur + 0.05);
   }
   function setMute(m) {
@@ -473,6 +534,9 @@
     c.x = nx; c.age = 0; c.state = "sit"; c.timer = 2;
     c.y = Math.max(0, Math.min(window.innerHeight - CAT, (window.innerHeight - e.clientY) - drag.offY));
     c.el.classList.add("dragging"); c.el.classList.remove("walking");
+    // kaget saat mulai terangkat dari taskbar; bunyi lagi kalau diangkat ulang setelah turun
+    if (c.y > 14 && !drag.lifted) { drag.lifted = true; sfx("lift", c.pitch, 0.5, 0.22, 0.24); }
+    else if (c.y <= 4) drag.lifted = false;
     draw(c);
   });
   document.addEventListener("mouseup", function () {
